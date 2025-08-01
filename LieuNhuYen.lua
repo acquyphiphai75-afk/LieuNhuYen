@@ -1,10 +1,12 @@
--- Blade Ball Auto Parry + Mod Skin + UI Menu with Background & Music
+-- Blade Ball Script: Auto Parry + Mod Skin + Custom UI (Hide/Show)
 -- Made by LieuNhuYenHub ⚔️
 
--- Load OrionLib for UI
+-- Load OrionLib UI
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
--- Window setup
+local uiVisible = true
+
+-- Create main window
 local Window = OrionLib:MakeWindow({
     Name = "⚔️ LieuNhuYenHub | Auto Parry",
     HidePremium = false,
@@ -12,40 +14,35 @@ local Window = OrionLib:MakeWindow({
     ConfigFolder = "BladeBallAuto"
 })
 
--- UI Background setup
-local success, gui = pcall(function()
-    return game.CoreGui:FindFirstChild("Orion"):FindFirstChild("Orion"):FindFirstChildOfClass("ScreenGui")
-end)
-if success and gui then
-    local background = Instance.new("ImageLabel")
-    background.Name = "Background"
-    background.Image = "rbxassetid://18687927545" -- ảnh nền kiếm khách
-    background.Size = UDim2.new(1, 0, 1, 0)
-    background.Position = UDim2.new(0, 0, 0, 0)
-    background.BackgroundTransparency = 1
-    background.ImageTransparency = 0.1
-    background.ZIndex = -1
-    background.Parent = gui
-end
+-- UI Background Image (gái xinh)
+local bg = Instance.new("ImageLabel")
+bg.Name = "Background"
+bg.Image = "rbxassetid://18687927545" -- Hình gái xinh
+bg.Size = UDim2.new(1, 0, 1, 0)
+bg.Position = UDim2.new(0, 0, 0, 0)
+bg.BackgroundTransparency = 1
+bg.ImageTransparency = 0.15
+bg.ZIndex = -1
+bg.Parent = game.CoreGui:FindFirstChild("Orion"):FindFirstChild("Orion"):FindFirstChildOfClass("ScreenGui")
 
--- Music setup
-local Sound = Instance.new("Sound")
-Sound.SoundId = "rbxassetid://18467014035" -- nhạc nền (đã convert từ YouTube)
-Sound.Volume = 1
-Sound.Looped = true
-Sound.Playing = true
-Sound.Parent = game:GetService("SoundService")
+-- Music
+local music = Instance.new("Sound")
+music.SoundId = "rbxassetid://18467014035"
+music.Volume = 1
+music.Looped = true
+music.Playing = true
+music.Parent = game.SoundService
 
--- Main Tab
-local MainTab = Window:MakeTab({
+-- Main tab
+local mainTab = Window:MakeTab({
     Name = "Main",
-    Icon = "rbxassetid://4483345998",
+    Icon = "rbxassetid://4483345998", -- Doro chibi icon
     PremiumOnly = false
 })
 
--- Auto Parry Toggle
+-- Auto Parry
 local autoParry = false
-MainTab:AddToggle({
+mainTab:AddToggle({
     Name = "Auto Parry",
     Default = false,
     Callback = function(state)
@@ -58,13 +55,13 @@ MainTab:AddToggle({
     end
 })
 
--- Mod Skin Button
-MainTab:AddButton({
+-- Mod Skin
+mainTab:AddButton({
     Name = "Mod Skin Kiếm",
     Callback = function()
         local sword = game.Players.LocalPlayer.Character:FindFirstChild("Sword")
         if sword then
-            sword.TextureID = "rbxassetid://18687925332" -- skin kiếm custom
+            sword.TextureID = "rbxassetid://18687925332" -- Skin kiếm
             OrionLib:MakeNotification({
                 Name = "Mod Skin",
                 Content = "Đã mod skin kiếm!",
@@ -74,19 +71,29 @@ MainTab:AddButton({
     end
 })
 
+-- Hide/Show UI Toggle
+mainTab:AddToggle({
+    Name = "Ẩn/Hiện Giao Diện (UI)",
+    Default = true,
+    Callback = function(value)
+        uiVisible = value
+        local ui = game.CoreGui:FindFirstChild("Orion")
+        if ui then
+            ui.Enabled = value
+        end
+    end
+})
+
 -- Auto Parry Logic
 game:GetService("RunService").RenderStepped:Connect(function()
     if autoParry then
         for _, ball in pairs(game.Workspace:GetChildren()) do
-            if ball.Name == "Ball" and ball:IsA("BasePart") then
-                local distance = (ball.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if distance < 25 then
-                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Parry"):FireServer()
-                end
+            if ball.Name == "Ball" and (ball.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 25 then
+                game:GetService("ReplicatedStorage").Remotes.Parry:FireServer()
             end
         end
     end
 end)
 
--- Load UI
+-- Init
 OrionLib:Init()
